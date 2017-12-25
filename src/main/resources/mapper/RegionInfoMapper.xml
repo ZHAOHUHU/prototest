@@ -15,7 +15,8 @@
     <result column="creater" property="creater" jdbcType="VARCHAR" />
     <result column="last_update_by" property="lastUpdateBy" jdbcType="VARCHAR" />
   </resultMap>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+  <!--void deleteTreenodeById(Integer id);-->
+  <delete id="deleteTreenodeById" parameterType="java.lang.Long" >
     delete from region_info
     where id = #{id,jdbcType=BIGINT}
   </delete>
@@ -65,16 +66,14 @@
   		and pid = #{pId}
   </update>
   <insert id="addOrgTreeNode"  parameterType="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
-  	<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
-      SELECT LAST_INSERT_ID()
-    </selectKey>
-    insert into region_info (pid, type_id, icon, 
+
+    insert into region_info (id,pid, type_id, icon,
       name, state, code, 
-      create_time, creater,update_time, last_update_by,remark
+      last_update_by,remark
       )
-    values (#{pId,jdbcType=BIGINT}, #{typeId,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR}, 
+    values (#{id},#{pId,jdbcType=BIGINT}, #{typeId,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR},
       #{name,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, 
-      #{createTime,jdbcType=TIMESTAMP},#{creater}, #{updateTime,jdbcType=TIMESTAMP}, #{lastUpdateBy},#{remark,jdbcType=VARCHAR}
+       #{lastUpdateBy},#{remark,jdbcType=VARCHAR}
       )
   </insert>
 </mapper>

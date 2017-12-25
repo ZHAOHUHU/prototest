@@ -24,7 +24,6 @@ import com.alibaba.fastjson.JSON;
 
 import shenzhen.teamway.tms9000.portal.domain.SysMenu;
 import shenzhen.teamway.tms9000.portal.domain.User;
-import shenzhen.teamway.tms9000.portal.service.MenuService;
 import shenzhen.teamway.tms9000.portal.service.UserService;
 import shenzhen.teamway.tms9000.portal.util.ConstantUtils;
 
@@ -34,8 +33,6 @@ public class LoginController {
 	private static Logger logger = LoggerFactory.getLogger(LoginController.class);
 	@Autowired
     private UserService userService;
-	@Autowired
-	private MenuService menuService;
 
     @RequestMapping(value = {"/", "index.html"})
     public String loginPage() {
@@ -90,7 +87,6 @@ public class LoginController {
 			}
 			
 			String pwd = user.getPassword();
-//			pwd = MD5Util.string2MD5(pwd);
 			if(!pwd.equals(userInfo.getPassword())) {
 				ModelAndView view = new ModelAndView("redirect:"+"/");
 				map.put("msg", "密码错误");
@@ -98,14 +94,9 @@ public class LoginController {
 				view.addAllObjects(map);
 				return view;
 			}
-			
+
 			ModelAndView view = null;
-//			if("0".equals(userInfo.getIs_first_login())) {
-//				view = new ModelAndView("updatePassword");
-//			} else {
-//				view = new ModelAndView("index");
-//			}
-			view = new ModelAndView("index1");
+			view = new ModelAndView("baseconf/orgManage");
 			request.getSession().setAttribute(ConstantUtils.SESSION_USER_, userInfo);
 			request.getSession().setAttribute("msg", "ss");
 			return view;
@@ -139,35 +130,12 @@ public class LoginController {
 	}
     
 	/**
-	 * 获取登录用户菜单资源
-	 * 
-	 * @param request
-	 * @param response
-	 * @return
+
 	 */
-	@RequestMapping(value="/initMenus.html")
-	public void merchantUserMenus(HttpServletRequest request,
-			HttpServletResponse response) {
-		/*Role role = new Role();
-		role.setRoleId(1);*/
-		User user =(User) request.getSession().getAttribute(ConstantUtils.SESSION_USER_);
-		List<SysMenu> list = menuService.queryMenusByUser(user);
-		/*List<Menu> list = menuService.queryMenuByUser(role);*/
-		String json = JSON.toJSONString(list);
-		PrintWriter pw = null;
-		try {
-			response.setCharacterEncoding("UTF-8");
-			System.out.println(json);
-			//json = new String(json.getBytes("ISO-8859-1"),"UTF-8");
-			pw = response.getWriter();
-			pw.write(json);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
 	
 	@RequestMapping(value="/test.html")
 	public  String test() {
-		return "menu/test";
+		return "baseconf/orgManage";
 	}
 }

@@ -29,21 +29,6 @@ var setting = {
 
 };
 
-/*var zNodes = [
-    {id: 1, pId: 0, name: "parent node 1", open: true},
-    {id: 11, pId: 1, name: "leaf node 1-1"},
-    {id: 12, pId: 1, name: "leaf node 1-2"},
-    {id: 13, pId: 1, name: "leaf node 1-3"},
-    {id: 2, pId: 0, name: "parent node 2", open: true},
-    {id: 21, pId: 2, name: "leaf node 2-1"},
-    {id: 22, pId: 2, name: "leaf node 2-2"},
-    {id: 23, pId: 2, name: "leaf node 2-3"},
-    {id: 3, pId: 0, name: "parent node 3", open: true},
-    {id: 31, pId: 3, name: "leaf node 3-1"},
-    {id: 32, pId: 3, name: "leaf node 3-2"},
-    {id: 33, pId: 3, name: "leaf node 3-3"}
-];*/
-
 var zNodes; 
 var log, className = "dark";
 
@@ -223,12 +208,11 @@ function remove(e) {
     $.ajax({
         type:"POST",
         dataType:"json",
-        url:"/baseconf/delOrgTreeById.html",
+        url:"/deleteById.html",
         data:{id:treeNode.id,pId:treeNode.pId},
         success:function(data){
-        	//data = eval("("+data+")");
             if(data.success){
-            	zTree.removeNode(treeNode, callbackFlag);
+            	//zTree.removeNode(treeNode, callbackFlag);
                 alert("删除成功");
             }else{
                 alert("删除失败");
@@ -254,12 +238,12 @@ function initNodes(){
 		cache:false,
 		type:"post",
 		dataType:"json",
-	    url:"/baseconf/initOrgTree.html",
+	    url:"/showtree.html",
 	    error:function(){
 	    	alert('请求失败');
 	    },
 	    success:function(data){
-	    	zNodes = data;
+	    	zNodes = data.tree;
 	    }
 	});
 };
