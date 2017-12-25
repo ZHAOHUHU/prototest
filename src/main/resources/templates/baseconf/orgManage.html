@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="../../static/css/demo.css" type="text/css"  th:href="@{/css/demo.css}" />
+    <link rel="stylesheet" href="../../static/css/zTreeStyle/zTreeStyle.css" th:href="@{/css/zTreeStyle/zTreeStyle.css}"
+          type="text/css"></link>
+    <link href="../../static/easyui/themes/gray/easyui.css" th:href="@{/easyui/themes/gray/easyui.css}"
+          rel="stylesheet"/>
+    <script src="../../static/js/jquery-1.7.2.min.js" th:src="@{/js/jquery-1.7.2.min.js}"></script>
+    <script src="../../static/js/jquery.ztree.all-3.5.min.js" th:src="@{/js/jquery.ztree.all-3.5.min.js}"></script>
+    <script src="../../static/js/ztree.js" th:src="@{/js/ztree.js}"></script>
+    <script src="../../static/easyui/jquery.easyui.min.js" th:src="@{/easyui/jquery.easyui.min.js}"></script>
+    <title>组织管理</title>
+</head>
+<body>
+<p>hello</p>
+<!--修改的dialog-->
+<div id="dialog" class="easyui-dialog" style="display: none">
+    <form method="post" id="myFrom" name="myFrom">
+        <!--value值的动态展示根据对象获取-->
+        编码格式： <input type="text" id="code" name="code"></input><br></br>
+        节点名称： <input type="text" id="name" name="name"></input><br></br>
+        state状态： <input type="text" id="state" name="state"></input><br></br>
+        备注信息： <textarea name="remark"></textarea> <br></br>
+    </form>
+</div>
+<!--添加的dialog-->
+<div id="adddialog" class="easyui-dialog" style="display: none">
+    <form method="post" id="addFrom" name="addFrom">
+        <!--value值的动态展示根据对象获取-->
+        编码格式： <input type="text" name="code"></input><br></br>
+        节点名称： <input type="text" name="name"></input><br></br>
+        state状态： <input type="text" name="state"></input><br></br>
+        备注信息： <textarea name="remark"></textarea> <br></br>
+    </form>
+</div>
+<div class="content_wrap">
+    <div class="zTreeDemoBackground left">
+        <ul id="treeDemo" class="ztree"></ul>
+    </div>
+    <div class="right">
+        <ul class="info">
+            <li class="title">
+                <ul class="list">
+                    <li>这是一帮按钮<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;[ <a id="addParent" href="#" title="添加根节点"
+                                                     onclick="return false;">add parent node</a> ]
+                        &nbsp;&nbsp;&nbsp;&nbsp;[ <a id="addLeaf" href="#" title="添加叶子节点"
+                                                     onclick="return false;">add leaf node</a> ]
+                        &nbsp;&nbsp;&nbsp;&nbsp;[ <a id="edit" href="#" title="编辑节点" onclick="return false;">edit
+                            name</a> ]<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;[ <a id="remove" href="#" title="移除节点" onclick="return false;">remove
+                            node</a> ]
+                        &nbsp;&nbsp;&nbsp;&nbsp;[ <a id="clearChildren" href="#" title="删除一帮节点"
+                                                     onclick="return false;">make child nodes to empty</a> ]<br/>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
+</body>
+</html>

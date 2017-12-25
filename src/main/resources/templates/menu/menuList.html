@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head  th:include= "common  :: common">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>菜单列表</title>
+</head>
+<body>
+<script type="text/javascript">
+	function formatterType(val, row) {
+		if (val == 1) {
+			return '模块';
+		} else if (val == 2) {
+			return '菜单';
+		}
+	}
+	
+	function formatterStatus(val, row) {
+		if (val == 1) {
+			return '有效';
+		} else if (val == 2) {
+			return '无效';
+		}
+
+	}
+	/*<![CDATA[*/
+	function link(val, row) {
+		return "<a href='javascript:void(0)' onclick='updateMenu(" + row.menuId
+				+ ")'>修改</a> &nbsp;&nbsp; <a href='javascript:void(0)' onclick='deleteMenu(" + row.menuId
+				+ ")'>删除</a>";
+	}
+	/*]]>*/
+	function deleteMenu(menuId){
+		
+		
+		 $.messager.confirm("确定要删除这个菜单吗?", "确定要删除这个菜单吗?", function (r) {  
+		        if (r) {  
+		        	$.ajax({
+		                type: "POST",
+		                url: "/menu/deleteMenu.html?menuId="+menuId,
+		    			async : false,
+		    			data : null,
+		    			success : function(data) {
+		    				data = eval("(" + data + ")");
+		    				if(data.flag == '-1' ){
+		    					$.messager.alert('提示', '删除失败!模块下有菜单正在使用,不能删除!', 'error');
+		    					
+							}else {
+								
+								$.messager.alert('提示', '删除成功', 'info');
+			    				 $('#menuGrid').datagrid('reload');
+							}
+		    			}
+		    		});
+		        }  
+		    });  
+	}
+
+	$(document).ready(function () {
+	
+        $("#add").click(function () {
+            $("#dialog").show();
+            $("#dialog").dialog({
+                title: '添加',
+                width: 500,
+                height: 300,
+                modal: true,
+                buttons: [{
+                    text: '保存',
+                    id: 'Edit',
+                    iconCls: 'icon-edit',
+                    handler: function () {
+                        $('#Edit').linkbutton('disable');
+                        $.ajax({
+                            type: "POST",
+                            url: "/menu/addMenu.html",
+							async : false,
+							data : $('#myFrom').serialize(),
+							success : function(data) {
+							
+								 $.messager.alert('提示', '新增成功', 'info');
+								  $("#dialog").dialog("close");
+								  $('#menuGrid').datagrid('reload');
+								$('#Edit').linkbutton('enable');
+							}
+						});
+					}
+				}, {
+					text : '取消',
+					iconCls : 'icon-help',
+					handler : function() {
+						  $("#dialog").dialog("close");
+
+					}
+				} ]
+			});
+		});
+	});
+
+	function changeMenuType() {
+		var menuType = $("#menuType").val();
+		if (menuType == 2) {
+			$("#module_list").show();
+			$("#menuUrlTr").show();
+		} else if (menuType == 1) {
+			$("#module_list").hide();
+			$("#menuUrlTr").hide();
+
+		}
+	}
+	function formatterdate(val, row) {
+		if (val != null) {
+		var date = new Date(val);
+		return date.getFullYear() + '-' + (date.getMonth() + 1) + '-'
+		+ date.getDate();
+		}
+	}
+	function updateMenu(menuId){
+		
+		
+			$("#updateDialog").show();
+            $("#updateDialog").dialog({
+            	href:'/menu/intiMenuInfo.html?menuId='+menuId,
+                title: '修改',
+                width: 500,
+                height: 300,
+                modal: true
+			});
+
+	}
+	
+	 function saveMenu(){
+		 
+		 	$.ajax({
+	         type: "POST",
+	         url: "/menu/updateMenu.html",
+				async : false,
+				data : $('#updateForm').serialize(),
+				success : function(data) {
+					  $.messager.alert('提示', '修改成功', 'info');
+					  $("#updateDialog").dialog("close");
+					  $('#menuGrid').datagrid('reload');
+					  $('#Edit').linkbutton('enable');
+				}
+			});
+	 }
+</script>
+	<a href="javascript:void(0)" type="button" id="add" value="添加"  class="easyui-linkbutton" data-options="iconCls:'icon-add'" >新增菜单</a>
+	<table class="easyui-datagrid" id="menuGrid"
+		style="width: 900px;"
+		data-options="pagination:true,singleSelect:true,url:'/menu/menuList.html',method:'POST'">
+		<thead>
+			<tr>
+				<th data-options="field:'menuName',width:80">菜单名称</th>
+				<th data-options="field:'menuUrl',width:200">菜单路径</th>
+				<th
+					data-options="field:'menuType',width:80,align:'right',formatter:formatterType">菜单类型</th>
+				<th
+					data-options="field:'menuStatus',width:80,align:'right',formatter:formatterStatus">菜单状态</th>
+				<th data-options="field:'createTime',width:250,formatter:formatterdate">创建时间</th>
+				<th data-options="field:'operater',width:200,formatter:link">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<div id="dialog" style="display: none;">
+		<form action="" method="post" id="myFrom" name="myFrom">
+			<table>
+				<tr>
+					<td>菜单名称:</td>
+					<td><input type="text" name="menuName" id="menuName"/></td>
+				</tr>
+				<tr>
+					<td>菜单类型:</td>
+					<td><select id="menuType" name="menuType"
+						onchange="javascript:changeMenuType();">
+							<option value="1">模块</option>
+							<option value="2">菜单</option>
+					</select></td>
+				</tr>
+				<tr style="display: none;" id="module_list">
+					<td>上级菜单:</td>
+					<td><select id="parentMenuId" name="parentMenuId">
+							<option value=""></option>
+					</select></td>
+				</tr>
+				<tr style="display: none;" id="menuUrlTr">
+					<td>菜单URl:</td>
+					<td><input type="text" id="menuUrl" name="menuUrl" />
+					<input type="hidden" name="menuStatus" id="menuStatus" value="1" /></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="updateDialog" style="display: none;"></div>	
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head  th:include= "common  :: common">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<title>Insert title here</title>
+
+</head>
+
+<body>
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$.messager.alert('提示', '111', 'info');
+		});
+		function formatterType(val, row) {
+			if (val == 1) {
+				return '模块';
+			} else if (val == 2) {
+				return '菜单';
+			}
+		}
+		
+		
+	</script>
+	
+	<a href="javascript:void(0)" type="button" id="add" value="添加"  class="easyui-linkbutton" data-options="iconCls:'icon-add'" >新增菜单</a>
+	<table class="easyui-datagrid" id="menuGrid"
+		style="width: 900px;"
+		data-options="pagination:true,singleSelect:true,url:'/menu/menuList.html',method:'POST'">
+		<thead>
+			<tr>
+				<th data-options="field:'menuName',width:80">菜单名称</th>
+				<th data-options="field:'menuUrl',width:200">菜单路径</th>
+				<th
+					data-options="field:'menuType',width:80,align:'right',formatter:formatterType">菜单类型</th>
+				<th
+					data-options="field:'menuStatus',width:80,align:'right'">菜单状态</th>
+				<th data-options="field:'createTime',width:250">创建时间</th>
+				<th data-options="field:'operater',width:200">操作</th>
+			</tr>
+		</thead>
+	</table>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="shenzhen.teamway.tms9000.portal.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="shenzhen.teamway.tms9000.portal.domain.Role" >
+    <id column="id" property="id" />
+    <result column="name" property="name"/>
+		<result column="role_type" property="roleType" />
+		<result column="role_status" property="roleStatus" />
+		<result column="create_time" property="createTime" />
+  </resultMap>
+  <resultMap type="shenzhen.teamway.tms9000.portal.domain.RoleMenuRef" id="roleMenu">
+			<result column="role_id" property="roleId" />
+			<result column="menu_id" property="menuId" />
+			<result column="ref_id" property="refId" />
+	</resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from role
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="shenzhen.teamway.tms9000.portal.domain.Role" >
+    <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into role (name)
+    values (#{name,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="shenzhen.teamway.tms9000.portal.domain.Role" >
+    update role
+    set name = #{name,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select id, name
+    from role
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, name
+    from role
+  </select>
+  <sql id="Role_Column_List">
+		role_id,role_name,role_type,role_status, create_time
+	</sql>
+	<select id="queryRoleList" resultMap="BaseResultMap" parameterType="String">
+		select
+		<include refid="Role_Column_List" />
+		from sys_role m  where role_status = 1  
+	</select>
+	
+	<select id="queryRoleListForPage" resultMap="BaseResultMap" >
+		select
+		<include refid="Role_Column_List" />
+		from sys_role m   where role_status = 1
+		<if test="roleId !=null and ''!= roleId">
+			 AND m.role_id = #{roleId}
+		</if>  
+		limit #{page},#{limit}
+	</select>
+	
+	<select id="queryRoleListForPageCount" resultType="Integer" >
+		select
+		 count(*)
+		from sys_role m   where role_status = 1
+		<if test="roleId !=null and ''!= roleId">
+			 AND m.role_id = #{roleId}
+		</if>  
+	</select>
+
+	<insert id="addRole"  keyProperty="roleId">
+	<selectKey resultType="java.lang.Integer" order="AFTER" keyProperty="roleId">
+		SELECT LAST_INSERT_ID() AS id
+	</selectKey>
+	    insert into sys_role (role_name , role_status , role_type ,create_time )
+	    
+	    values (#{roleName},#{roleStatus},#{roleType},now())
+	</insert>
+	<insert id="addRoleMenuRef" >
+	 		 insert into sys_role_menu_ref (role_id ,menu_id) values(#{roleId} , #{menuId})
+	</insert>
+	
+	<select id="getRoleById" resultMap="BaseResultMap">
+			  select <include refid="Role_Column_List" />
+			  from sys_role where role_id = #{roleId}
+	</select>
+	
+	<select id="getRoles" resultMap="BaseResultMap">
+			  select <include refid="Role_Column_List" />
+			  from sys_role
+			  where role_status = 1  
+	</select>
+	
+	<update id="updateRoleInfo" >
+	     update sys_role set role_name = #{roleName} , role_status = #{roleStatus} , role_type = #{roleType} where role_id = #{roleId}
+	</update>
+	
+	<delete id="deleteRoleMenuRef">
+	      delete from sys_role_menu_ref where role_id = #{roleId}
+	</delete>
+	<update id="updateRoleStatus">
+			update sys_role set role_status = #{param1} where role_id=#{param2}
+	</update>
+	
+	<select id="getRoleByUserId" resultMap="BaseResultMap">
+			SELECT
+				role.role_id,role.role_name,role.role_type,role.role_status, role.create_time
+			FROM sys_role role,
+			  sys_user_role_ref ref
+			WHERE role.role_id = ref.role_id
+			    AND role.role_status = 1
+				AND ref.user_id = #{userId}
+	</select>
+</mapper>

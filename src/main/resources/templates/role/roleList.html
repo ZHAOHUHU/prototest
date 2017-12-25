@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout">
+<head  th:include= "common  :: common">
+<link rel="stylesheet" type="text/css" href="/css/zTreeStyle/zTreeStyle.css" th:href ="@{/css/zTreeStyle/zTreeStyle.css}">
+<script type="text/javascript" src="/js/jquery.ztree.all-3.5.min.js" th:src="@{/js/jquery.ztree.all-3.5.min.js}"></script>
+<link rel="stylesheet" type="text/css" href="/css/demo.css" th:href="@{/css/demo.css}">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript">
+
+	$(document).ready(function(){
+		$("#add").click(function () {
+            $("#dialog").show();
+            $("#dialog").dialog({
+                title: '添加',
+                width: 500,
+                height: 300,
+                modal: true,
+                buttons: [{
+                    text: '保存',
+                    id: 'Edit',
+                    iconCls: 'icon-edit',
+                    handler: function () {
+                        $('#Edit').linkbutton('disable');
+                        GetCheckedAll();
+                        $.ajax({
+                            type: "POST",
+                            url: "<%=request.getContextPath()%>/role/addRole.html",
+							async : false,
+							data : $('#myFrom').serialize(),
+							success : function(data) {
+								 $.messager.alert('提示', '新增成功', 'info');
+								  $("#dialog").dialog("close");
+								  $('#roleGrid').datagrid('reload');
+								$('#Edit').linkbutton('enable');
+							}
+						});
+					}
+				}, {
+					text : '取消',
+					iconCls : 'icon-help',
+					handler : function() {
+						  $("#dialog").dialog("close");
+
+					}
+				} ]
+			});
+		});
+		var setting = {
+			    check: {
+			        enable: true,
+			        chkboxType:{ "Y" : "ps", "N" : "ps" },
+			        nocheckInherit: true
+			        
+			    },
+			    data: {
+			        simpleData: {
+			            enable: true
+			        }
+			    }
+			};
+		var rid = ${role.roleId};
+		$.ajax({
+            type: "POST",
+            url: "<%=request.getContextPath()%>/menu/menuTree.html?roleId="+rid,
+			async : false,
+			dataType : 'html',
+			data : null,
+			success : function(data) {
+				 $.fn.zTree.init($("#ztree"), setting,eval("(" + data + ")"));  
+			}
+		});
+		
+		
+	});
+	function setCheck() {
+		var zTree = $.fn.zTree.getZTreeObj("ztree");
+		zTree.setting.check.chkboxType = { "Y" : "ps", "N" : "ps" };
+	}
+	function formatterType(val, row) {
+		if (val == 0) {
+			return '系统管理员';
+		} else if (val == 1) {
+			return '商户管理员';
+		}
+
+	}
+	function formatterStatus(val, row) {
+		if (val == 1) {
+			return '有效';
+		} else if (val == 2) {
+			return '无效';
+		}
+
+	}
+	function link(val,row){
+		return "<a href='javascript:void(0)' onclick='updateRole("+row.roleId+")'>修改</a> &nbsp;&nbsp;<a href='javascript:void(0)' onclick='deleteRole("+row.roleId+")'>删除</a>";
+	}
+	function deleteRole(roleId){
+		 $.messager.confirm("确定要删除这个角色吗?", "确定要删除这个角色吗?", function (r) {  
+		        if (r) {  
+		        	$.ajax({
+		                type: "POST",
+		                url: "<%=request.getContextPath()%>/role/deleteRole.htm?roleId="+roleId,
+		    			async : false,
+		    			data : null,
+		    			success : function(data) {
+		    				$.messager.alert('提示', '删除成功', 'info');
+		    				 $('#roleGrid').datagrid('reload');
+		    			}
+		    		});
+		        }  
+		    });  
+		
+	}
+	function updateRole(roleId){
+	
+		$("#updateDialog").show();
+		
+		 $.ajax({
+	            type: "POST",
+	            url: "<%=request.getContextPath()%>/role/initRoleInfo.htm?roleId="+roleId,
+				async : false,
+				dataType : 'html',
+				data : null,
+				success : function(data) {
+					data = eval("(" + data + ")");
+					var roleName = $("#updateFrom").find("#roleName");
+					roleName.val(data.roleName);
+					 var roleId = $("#updateFrom").find("#roleId");
+					roleId.val(data.roleId);
+					 var roleType = $("#updateFrom").find("#roleType");
+					roleType.val(data.roleType);
+					 var roleStatus = $("#updateFrom").find("#roleStatus");
+					 roleStatus.val(data.roleStatus);
+
+				}
+			});
+		$.ajax({
+            type: "POST",
+            url: "<%=request.getContextPath()%>/menu/menuTree.htm?roleId="+roleId,
+			async : false,
+			dataType : 'html',
+			data : null,
+			success : function(data) {
+				var setting = {
+					    check: {
+					        enable: true,
+					       // chkboxType:{ "Y" : "p", "N" : "p" },
+					        nocheckInherit: true
+					        
+					    },
+					    data: {
+					        simpleData: {
+					            enable: true
+					        }
+					    }
+					};
+				 $.fn.zTree.init($("#updateZtree"), setting,eval("(" + data + ")"));  
+			}
+		});
+		$.ajax({
+            type: "POST",
+            url: "<%=request.getContextPath()%>/menu/menuTree.htm?roleId="+roleId,
+			async : false,
+			dataType : 'html',
+			data : null,
+			success : function(data) {
+				var treeObj = $.fn.zTree.getZTreeObj("updateZtree");
+				 data = eval("(" + data + ")");
+				 for(var i = 0 ; i<data.length ;i++){
+					 //alert(data[i].pId);
+					 if(data[i].pId != undefined ){
+		       		 		treeObj.checkNode(treeObj.getNodeByParam("id", data[i].id, null), true, true);
+					 }
+				 }
+			}
+		});
+		$("#updateDialog").dialog({
+            title: '添加',
+            width: 500,
+            height: 300,
+            modal: true,
+            buttons: [{
+                text: '保存',
+                id: 'Edit',
+                iconCls: 'icon-edit',
+                handler: function () {
+                    $('#Edit').linkbutton('disable');
+                    GetCheckedAll_update();
+                    $.ajax({
+                        type: "POST",
+                        url: "<%=request.getContextPath()%>/role/updateRole.htm",
+						async : false,
+						data : $('#updateFrom').serialize(),
+						success : function(data) {
+							 $.messager.alert('提示', '修改成功', 'info');
+							  $("#updateDialog").dialog("close");
+							  $('#roleGrid').datagrid('reload');
+							$('#Edit').linkbutton('enable');
+						}
+					});
+				}
+			}, {
+				text : '取消',
+				iconCls : 'icon-help',
+				handler : function() {
+					  $("#updateDialog").dialog("close");
+
+				}
+			} ]
+		});
+		
+	}
+	function formatterdate(val, row) {
+		if (val != null) {
+		var date = new Date(val);
+		return date.getFullYear() + '-' + (date.getMonth() + 1) + '-'
+		+ date.getDate();
+		}
+	}
+	//获取所有选中节点的值
+    function GetCheckedAll() {
+        var treeObj = $.fn.zTree.getZTreeObj("ztree");
+        var nodes = treeObj.getCheckedNodes(true);
+        var msg = "";
+        for (var i = 0; i < nodes.length; i++) {
+            msg += nodes[i].id+",";
+        }
+        $("#menuList_1").val();
+        $("#menuList_1").val(msg);
+    }    
+	
+  //获取所有选中节点的值
+    function GetCheckedAll_update() {
+        var treeObj = $.fn.zTree.getZTreeObj("updateZtree");
+        var nodes = treeObj.getCheckedNodes(true);
+        var msg = "";
+        for (var i = 0; i < nodes.length; i++) {
+            msg += nodes[i].id+",";
+        }
+        $("#menuList_2").val();
+        $("#menuList_2").val(msg);
+    }    
+	
+</script>
+<title></title>
+</head>
+<body>
+	<table id="buttonTable">
+		<tr>
+		<td>
+		<a href="javascript:void(0)" type="button" id="add" value="添加"  class="easyui-linkbutton" data-options="iconCls:'icon-add'" >新增角色</a>
+		</td>
+		</tr>
+	</table>
+	<table class="easyui-datagrid"  id="roleGrid"
+		style="width: 100%;"
+		data-options="pagination:true,striped:true,rownumbers:true,singleSelect:true,url:'<%=request.getContextPath()%>/role/roleList.html?limit=10&offset=10',method:'POST'">
+		<thead>
+			<tr>
+				<th data-options="field:'roleName',width:200">角色名称</th>
+				<th data-options="field:'roleType',width:200,formatter:formatterType">角色类型</th>
+				<th data-options="field:'createTime',width:200,formatter:formatterdate">角色创建时间</th>
+				<th data-options="field:'oprater',width:200,formatter:link">操作</th>
+			</tr>
+		</thead>
+	</table>
+
+	<div id="dialog" style="display: none;">
+		<form action="" method="post" id="myFrom" name="myFrom">
+			<table>
+				<tr>
+					<td>角色名称:</td>
+					<td><input type="text" name="roleName" id="roleName">
+					    <input type="hidden" name="roleType" id="roleType" value="1" />
+					    <input type="hidden" name="roleStatus" id="roleStatus" value="1" />
+					</td>
+				</tr>
+				<tr>
+				 <td colspan="2">
+				 	<div class="zTreeDemoBackground left">
+				     	<ul id="ztree" class="ztree"></ul>
+				     </div>
+				     <input type="hidden" name="menuList" id="menuList_1" >
+				 </td>
+				 
+				</tr>
+			</table>
+		</form>
+	</div>
+	
+	<div id="updateDialog" style="display: none;">
+		<form action="" method="post" id="updateFrom" name="updateFrom">
+			<table>
+				<tr>
+
+					<td>角色名称:</td>
+					<td><input type="text" name="roleName" id="roleName"
+						value="${role.roleName }"/> <input type="hidden"
+						value="${role.roleId }" id="roleId" name="roleId" />
+						<input type="hidden" id="roleType" name="roleType" />
+						<input type="hidden" id="roleStatus" name="roleStatus" />
+						</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<div class="zTreeDemoBackground left">
+							<ul id="updateZtree" class="ztree"></ul>
+						</div> 
+						<input type="hidden" name="menuList" id="menuList_2">
+					</td>
+
+				</tr>
+			</table>
+		</form>
+	</div>
+<!-- 	<script type="text/javascript">
+		$(function(){
+			var pager = $('#roleGrid').datagrid().datagrid('getPager');	// get the pager of datagrid
+		    pager.pagination({ 
+		        afterPageText:'共 {pages} 页',
+		        showPageList:false,
+		        showRefresh:false
+		    }); 
+		})
+	</script> -->
+</body>
+</html>

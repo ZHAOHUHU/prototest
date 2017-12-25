@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="shenzhen.teamway.tms9000.portal.mapper.RegionInfoMapper" >
+  <resultMap id="BaseResultMap" type="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="pid" property="pId" jdbcType="BIGINT" />
+    <result column="type_id" property="typeId" jdbcType="INTEGER" />
+    <result column="icon" property="icon" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="last_update_by" property="lastUpdateBy" jdbcType="VARCHAR" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from region_info
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
+    <selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into region_info (pid, type_id, icon, 
+      name, state, code, 
+      create_time, update_time, remark
+      )
+    values (#{pId,jdbcType=BIGINT}, #{typeId,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
+    update region_info
+    set pid = #{pId,jdbcType=BIGINT},
+      type_id = #{typeId,jdbcType=INTEGER},
+      icon = #{icon,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      code = #{code,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      remark = #{remark,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, pid, type_id, icon, name, state, code, create_time, update_time, remark
+    from region_info
+    where id = #{id,jdbcType=BIGINT}
+    and state = 0
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, pid, type_id, icon, name, state, code, create_time, update_time, remark
+    from region_info
+    where state = 0
+  </select>
+  <update id="updateOrgTreeById" parameterType="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
+  		update region_info
+  		 set state = 1,
+  		 update_time = now(),
+  		 last_update_by = #{lastUpdateBy}
+  		where id = #{id}
+  		and pid = #{pId}
+  </update>
+  <insert id="addOrgTreeNode"  parameterType="shenzhen.teamway.tms9000.portal.domain.RegionInfo" >
+  	<selectKey resultType="java.lang.Long" keyProperty="id" order="AFTER" >
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into region_info (pid, type_id, icon, 
+      name, state, code, 
+      create_time, creater,update_time, last_update_by,remark
+      )
+    values (#{pId,jdbcType=BIGINT}, #{typeId,jdbcType=INTEGER}, #{icon,jdbcType=VARCHAR}, 
+      #{name,jdbcType=VARCHAR}, #{state,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP},#{creater}, #{updateTime,jdbcType=TIMESTAMP}, #{lastUpdateBy},#{remark,jdbcType=VARCHAR}
+      )
+  </insert>
+</mapper>

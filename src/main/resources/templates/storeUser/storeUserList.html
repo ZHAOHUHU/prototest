@@ -1,0 +1,457 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head  th:include= "common  :: common">
+<link rel="stylesheet" type="text/css" href="<%=request.getContextPath()%>/css/zTreeStyle/zTreeStyle.css">
+<script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.ztree.all-3.5.min.js"></script>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript">
+var setting = {
+    check: {
+        enable: true,
+        chkboxType:{ "Y" : "ps", "N" : "ps" },
+        nocheckInherit: true
+    },
+    data: {
+        simpleData: {
+            enable: true
+        }
+    }
+};
+
+$(document).ready(function(){
+	
+	$('#user_role').combobox({    
+        url:'<%=request.getContextPath()%>/role/roleListAll.htm',    
+        valueField:'roleId',    
+        textField:'roleName'   
+    }); 
+	$('#u_user_role').combobox({    
+        url:'<%=request.getContextPath()%>/role/roleListAll.htm',    
+        valueField:'roleId',    
+        textField:'roleName'   
+    }); 
+	
+	var roleFlag = ${roleFlag};
+	if(roleFlag == 2){
+		$("#btnAdd").hide();
+		//$("#u_user_role").attr("readonly","readonly");
+		/* $('#u_user_role').combobox({ 
+			editable:false
+		 });  */
+		 
+		$('#u_user_role').combobox('disable');
+	}
+	
+	//按钮绑定-查询
+	$("#btnQuery").click(function () {
+		queryList();
+	});
+	//按钮绑定-添加
+    $("#btnAdd").click(function(){
+    	initAddPage();
+        $("#dialog").show();
+        $("#dialog").dialog({
+            title: '添加',
+            width: 700,
+            height: 500,
+            modal: true,
+            buttons: [{
+                text: '保存',
+                id: 'Edit',
+                iconCls: 'icon-save',
+                handler: function () {
+                	if($("#user_role").combobox('getValue') == ""){
+                		$.messager.alert('提示信息', '请选择<角色>', 'info');
+                		return;
+                	}
+                	if($("#login").val() == ""){
+                		$.messager.alert('提示信息', '请添加<登录帐号>', 'info');
+                		return;
+                	}
+                	if($("#user_name").val() == ""){
+                		$.messager.alert('提示信息', '请添加<姓名>', 'info');
+                		return;
+                	}
+                	
+                	if(checkLogin($("#login").val()) == "true"){
+                		$.messager.alert('信息提示', '该<帐号>已存在，请重新输入！', 'info');
+                		return;
+                	}
+                	if($("#is_cashier").attr("checked")){
+                		$("#is_cashier").val("1");
+                	}
+                    $('#Edit').linkbutton('disable');
+                    $.ajax({
+                        type: "POST",
+                        dataType : 'html',
+                        url: "<%=request.getContextPath()%>/store/addStoreUser.htm",
+						async : false,
+						data : $('#myFrom').serialize(),
+						success : function(data) {
+							$.messager.alert('提示', '新增成功', 'info');
+							$("#dialog").dialog("close");
+							$('#Edit').linkbutton('enable');
+							queryList();
+						}
+					});
+				}
+			}, {
+				text : '取消',
+				iconCls : 'icon-back',
+				handler : function() {
+					  $("#dialog").dialog("close");
+				}
+			} ]
+		});
+        
+	});
+  
+});
+function link(val, row) {
+	return "<a href='javascript:void(0)' onclick='updateStoreUser(" + row.id+")'>修改</a>&nbsp;&nbsp;"+
+			"<a href='javascript:void(0)' onclick='rePassword(" + row.id+")'>重置密码</a>&nbsp;&nbsp;"+
+			"<a href='javascript:void(0)' onclick='delStoreUser(" + row.id+ ")'>删除</a>";
+}
+function delStoreUser(id){
+	$.messager.confirm("提示信息", "确定要删除该用户吗?", function (r) {  
+		if(r){  
+	      	$.ajax({
+	            type: "POST",
+	            dataType : 'html',
+	            url: "<%=request.getContextPath()%>/store/delStoreUser.htm?user_id="+id,
+	  			async : false,
+	  			data : null,
+	  			success : function(data) {
+	  				data = eval("(" + data + ")");
+	  				if(data.flag == '-1' ){
+	  					$.messager.alert('提示', '删除失败!模块下有菜单正在使用,不能删除!', 'error');
+					}else {
+						$.messager.alert('提示', '删除成功', 'info');
+		   				 $('#storeUserGrid').datagrid('reload');
+					}
+	  			}
+	  		});
+	      }  
+	  });  
+}
+
+	
+	function updateStoreUser(id){
+		$("#updateDialog").show();
+		$.ajax({
+            type: "POST",
+            url: "<%=request.getContextPath()%>/store/getStoreUserInfo.htm?user_id="+id,
+			async : false,
+			dataType : 'html',
+			data : null,
+			success : function(data) {
+				//alert(data);
+				data = eval("(" + data + ")");
+				$("#u_id").val(data.id);
+				$("#u_login").val(data.login);
+				$("#u_user_name").val(data.user_name);
+				$("#u_phone").val(data.phone); 
+			    $("#u_memo").val(data.memo);
+				$("#u_sex").val(data.sex);
+				if(data.is_cashier == "1"){
+					$("#u_is_cashier").attr("checked",'true');
+				}else{
+					$("#u_is_cashier").removeAttr("checked");
+				}
+
+				$("#u_user_role").combobox('setValue',data.role_id);
+			}
+		}); 
+   		$("#updateDialog").dialog({
+               title: '修改',
+               width: 700,
+               height: 500,
+               modal: true,
+               buttons: [{
+                   text: '保存',
+                   id: 'Edit',
+                   iconCls: 'icon-save',
+                   handler: function () {
+                	   if($("#u_user_type").val() == "#"){
+	                   		$.messager.alert('提示信息', '请选择<用户类型>', 'info');
+	                   		return;
+	                   	}
+                	   if($("#u_user_role").combobox('getValue') == ""){
+                   		$.messager.alert('提示信息', '请选择<角色>', 'info');
+                   		return;
+                   		}
+                	   if($("#u_user_name").val() == ""){
+                      		$.messager.alert('提示信息', '请添加<姓名>', 'info');
+                      		return;
+                       }
+                	   if($("#u_is_cashier").attr("checked")){
+                   			$("#u_is_cashier").val("1");
+                   		}
+	                   	$.ajax({
+	              	         type: "POST",
+	              	       	 dataType : 'html',
+	              	         url: "<%=request.getContextPath()%>/store/updateStoreUser.htm",
+	              				async : false,
+	              				data : $('#updateForm').serialize(),
+	              				success : function(data) {
+	              					  $.messager.alert('提示', '修改成功', 'info');
+	              					  $("#updateDialog").dialog("close");
+	              					  $('#Edit').linkbutton('enable');
+	              					  queryList();
+	              				}
+	              			});
+   				}
+   			}, {
+   				text : '取消',
+   				iconCls : 'icon-back',
+   				handler : function() {
+   					  $("#updateDialog").dialog("close");
+
+   				}
+   			} ]
+   		});
+}
+	
+function saveStoreUser(){
+	
+ 	$.ajax({
+        type: "POST",
+        dataType : 'html',
+        url: "<%=request.getContextPath()%>/store/updateStoreUser.htm",
+		async : false,
+		data : $('#updateForm').serialize(),
+		success : function(data) {
+			  $.messager.alert('提示', '修改成功', 'info');
+			  $("#updateDialog").dialog("close");
+			  $('#storeUserGrid').datagrid('reload');
+			  $('#Edit').linkbutton('enable');
+		}
+	});
+}
+      
+function queryList(){
+	
+	var q_user_name = $("#q_user_name").val();
+	var q_user_type = $("#q_user_type").val();
+	$('#storeUserGrid').datagrid('load',{
+		user_name: q_user_name
+	});
+	
+	<%-- 
+	$.ajax({
+        type: "POST",
+        url: "<%=request.getContextPath()%>/store/storeUserList.htm",
+		async : false,
+		data : $('#queryFrom').serialize(),
+		success : function(data) {
+			data = eval("(" + data + ")");
+			$('#storeUserGrid').datagrid('loadData',data);
+		}
+	}); 
+	--%>
+}
+function checkLogin(login){
+	var msg = null;
+	$.ajax({
+        type: "POST",
+        url: "<%=request.getContextPath()%>/store/checkLogin.htm?login="+login,
+		async : false,
+		data : null,
+		success : function(data) {
+			msg = eval("(" + data + ")");
+		}
+	});
+	return msg;
+}
+//重置密码
+function rePassword(id){
+	$.messager.confirm("提示信息", "确定要重置该用户的密码吗?", function (r) {  
+        if (r) {  
+        	$.ajax({
+                type: "POST",
+                url: "<%=request.getContextPath()%>/store/rePassword.htm?user_id="+id,
+    			async : false,
+    			dataType : 'html',
+    			data : null,
+    			success : function(data) {
+    				data = eval("(" + data + ")");
+    				if(data.flag == '-1' ){
+    					$.messager.alert('提示', '重置失败！', 'error');
+					}else {
+						$.messager.alert('提示', '重置成功！', 'info');
+	    				 $('#storeUserGrid').datagrid('reload');
+					}
+    				
+    			}
+    		});
+        }  
+    });  
+}
+//初始化添加页面
+function initAddPage(){
+	$("#myFrom").form("clear");
+	$("#is_cashier").removeAttr("checked");
+	$("#dialog select option[value='#']").attr("selected", "selected");
+}
+
+function  formattersex(val, row){
+	if(val == '1'){
+		return '男';
+	}else if(val == '2'){
+		return '女';
+	}
+}
+</script>
+<title></title>
+</head>
+<body>
+<form id="queryFrom" name="queryFrom">
+<table>
+<tr>
+	<td colspan="5">
+	<a  href="javascript:void(0)" type="button" name="add"  class="easyui-linkbutton" data-options="iconCls:'icon-add'"  id="btnAdd" >添加用户</a>
+	</td>
+</tr>
+<tr>
+	<td>用户名：</td>
+	<td><input class="easyui-textbox"  id="q_user_name" name="user_name"></td>
+	<td><a id="btnQuery" href="javascript:void(0)"  class="easyui-linkbutton" style="margin-left:5px" data-options="iconCls:'icon-search'"  type="button"  >查询</a></td>
+</tr>
+</table>
+</form>
+	
+	<table class="easyui-datagrid" id="storeUserGrid"
+		style="width: 100%"
+		data-options="loadMsg:'数据加载中,请稍后……',pagination:true,rownumbers:true,striped:true,singleSelect:true,collapsible:true,url:'<%=request.getContextPath()%>/store/storeUserList.htm'">
+		<thead>
+			<tr>
+				<th data-options="field:'user_name',width:100">姓名</th>
+				<th data-options="field:'sex',width:100,align:'center',formatter:formattersex">性别</th>
+				<th data-options="field:'phone',width:100,align:'right'">联系电话</th>
+				<th data-options="field:'login',width:100,align:'center'">登录帐号</th>
+				<th data-options="field:'is_cashier_SV',width:100,align:'center'">是否收银员</th>
+				<th data-options="field:'create_Time',width:100,align:'center',formatter:formatterdate">创建时间</th>
+				<th data-options="field:'operater',width:200,align:'center',formatter:link">操作</th>
+			</tr>
+		</thead>
+	</table>
+	<div id="dialog" style="display:none;">
+	<h3 class="h3">新增信息</h3>
+		<form action="" class="agentFrom" method="post" id="myFrom" name="myFrom">
+			<div style="float:left;width:65%">
+				<table style="width:100%;">
+				<tr style="display: none;">
+					<td>
+					</td>
+				</tr>
+				<tr>
+					<td style="width:15%;">角色</th>
+					<td>
+						<input style="width:200px;margin-left:5px;" id="user_role"  name="user_role"/>
+						&nbsp;&nbsp;<font color="red">*</font>
+					</td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">登录帐号:</th>
+					<td><input style="width: 200px;margin-left:5px;" type="text" name="login" id="login">&nbsp;&nbsp;<font color="red">*</font></td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">姓名:</th>
+					<td><input style="width: 200px;margin-left:5px;" type="text" name="user_name" id="user_name">&nbsp;&nbsp;<font color="red">*</font></td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">性别:</td>
+					<td>
+						<select style="width: 200px;" id="sex"  name="sex">
+							<option value="#">--请选择--</option>
+							<option value="1">男</option>
+							<option value="2">女</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">联系电话:</td>
+					<td><input style="width:200px;margin-left:5px;" type="text" name="phone" id="phone"></td>
+				</tr>
+				<tr>
+					<td  style="width:20%;">是否收银员:</td>
+					<td >
+						<input type="checkBox" name="is_cashier" id="is_cashier" >
+					</td>
+				</tr>
+				<tr>
+				 <td  style="width:15%;">备注：</td>
+					<td>
+						<textarea rows="3" id="memo"  name="memo" style="width:200px"></textarea>
+					</td>
+				</tr>
+
+			</table>
+			</div>
+			<div style="float:right;width:35%;display: none;" id="shopDiv">
+			<h3 class="h3">门店列表</h3>
+				<div class="zTreeDemoBackground left">
+			     	<ul id="ztree" class="ztree"></ul>
+			     </div>
+			     <input type="hidden" name="shopGrounp"  id="shopGrounp1">
+			</div>
+		</form>
+	</div>
+	<div id="updateDialog" style="display: none;">
+	<h3 class="h3">修改用户信息</h3>
+		<form action="" method="post"  class="agentFrom" id="updateForm" name="updateForm">
+		<div style="float:left;width:65%">
+		<input type="hidden" name="id"  value="" id="u_id">
+			<table class="merchant-table" style="width:100%;">
+				<tr>
+					<td style="width:15%;">角色</th>
+					<td>
+						<input style="width:200px;margin-left:5px;" id="u_user_role"  name="user_role"/>
+						&nbsp;&nbsp;<font color="red">*</font>
+					</td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">登录帐号:</td>
+					<td style="width:35%;"><input style="width:200px;margin-left:5px;" type="text" name="login"   id="u_login"  readonly></td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">姓名:</td>
+					<td style="width:35%;"><input style="width: 200px;margin-left:5px;" type="text" name="user_name"  value=""  id="u_user_name">&nbsp;&nbsp;<font color="red">*</font></td>
+				</tr>
+				<tr>
+					<td  >性别:</td>
+					<td>
+						<select id="u_sex"  name="sex" style="width: 200px;">
+							<option value="#">--请选择--</option>
+							<option value="1">男</option>
+							<option value="2">女</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td  style="width:15%;">联系电话:</td>
+					<td style="width:35%;"><input style="width: 200px;margin-left:5px;" type="text" name="phone"  value="" id="u_phone"></td>
+				</tr>
+				<tr>
+					<td  style="width:16%;">是否收银员:</td>
+					<td>
+						<input type="checkBox" name="is_cashier" id="u_is_cashier" >
+					</td>
+				</tr>
+				<tr>
+				 <td  style="width:15%;">备注：</td>
+					<td>
+						<textarea rows="3"  name="memo"  id='u_memo'  style="width:200px"></textarea>
+					</td>
+				</tr>
+				
+			</table>
+		</div>
+		</form>
+	</div>
+	
+</body>
+</html>

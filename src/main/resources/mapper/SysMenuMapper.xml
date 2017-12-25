@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="shenzhen.teamway.tms9000.portal.mapper.SysMenuMapper" >
+  <resultMap id="BaseResultMap" type="shenzhen.teamway.tms9000.portal.domain.SysMenu" >
+    <id column="menu_id" property="menuId" jdbcType="INTEGER" />
+    <result column="menu_name" property="menuName" jdbcType="VARCHAR" />
+    <result column="menu_no" property="menuNo" jdbcType="VARCHAR" />
+    <result column="menu_url" property="menuUrl" jdbcType="VARCHAR" />
+    <result column="menu_type" property="menuType" jdbcType="INTEGER" />
+    <result column="parent_menu_id" property="parentMenuId" jdbcType="INTEGER" />
+    <result column="menu_status" property="menuStatus" jdbcType="INTEGER" />
+    <result column="menu_create_time" property="menuCreateTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  
+  	<sql id="Base_Column_List">
+		m.menu_id, menu_name, menu_type,menu_status,menu_url,parent_menu_id,menu_create_time
+	</sql>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from sys_menu
+    where menu_id = #{menuId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="shenzhen.teamway.tms9000.portal.domain.SysMenu" >
+    insert into sys_menu (menu_id, menu_name, menu_no, 
+      menu_url, menu_type, parent_menu_id, 
+      menu_status, menu_create_time)
+    values (#{menuId,jdbcType=INTEGER}, #{menuName,jdbcType=VARCHAR}, #{menuNo,jdbcType=VARCHAR}, 
+      #{menuUrl,jdbcType=VARCHAR}, #{menuType,jdbcType=INTEGER}, #{parentMenuId,jdbcType=INTEGER}, 
+      #{menuStatus,jdbcType=INTEGER}, #{menuCreateTime,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="shenzhen.teamway.tms9000.portal.domain.SysMenu" >
+    update sys_menu
+    set menu_name = #{menuName,jdbcType=VARCHAR},
+      menu_no = #{menuNo,jdbcType=VARCHAR},
+      menu_url = #{menuUrl,jdbcType=VARCHAR},
+      menu_type = #{menuType,jdbcType=INTEGER},
+      parent_menu_id = #{parentMenuId,jdbcType=INTEGER},
+      menu_status = #{menuStatus,jdbcType=INTEGER},
+      menu_create_time = #{menuCreateTime,jdbcType=TIMESTAMP}
+    where menu_id = #{menuId,jdbcType=INTEGER}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select menu_id, menu_name, menu_no, menu_url, menu_type, parent_menu_id, menu_status, 
+    menu_create_time
+    from sys_menu
+    where menu_id = #{menuId,jdbcType=INTEGER}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select menu_id, menu_name, menu_no, menu_url, menu_type, parent_menu_id, menu_status, 
+    menu_create_time
+    from sys_menu
+  </select>
+  <select id="queryMenuByUserId" resultMap="BaseResultMap" parameterType="Integer">
+  		select DISTINCT
+		m.menu_id, menu_name, menu_no, menu_url, menu_type, parent_menu_id, menu_status, menu_create_time
+		from sys_menu m , sys_role_menu_ref r where m.menu_id = r.menu_id 
+	 and	r.role_id IN (SELECT role_id FROM sys_user_role_ref WHERE user_id=#{id,javaType=Integer}) 
+		and m.menu_status = 1  order by parent_menu_id asc  
+  </select>
+	<select id="queryMenuByRoleId" resultMap="BaseResultMap" parameterType="Integer">
+		select
+		<include refid="Base_Column_List" />
+
+		from sys_menu m , sys_role_menu_ref r where m.menu_id = r.menu_id and
+		r.role_id = #{roleId,javaType=Integer} and m.menu_status = 1  order by parent_menu_id asc  
+
+	</select>
+	
+	<select id="queryMenuList" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+
+		from sys_menu m 
+		where 1=1 and menu_status=1
+		<if test="menuType !=null">
+		  and  menu_type = #{menuType,javaType=Integer} 
+		</if>
+		 order by parent_menu_id  asc 
+
+	</select>
+	<select id="queryMenuListForPage" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+
+		from sys_menu m 
+		where 1=1 and menu_status=1
+		<if test="menuType !=null">
+		  and  menu_type = #{menuType,javaType=Integer} 
+		</if>
+		 order by parent_menu_id  asc limit #{page},#{limit}
+
+	</select>
+	
+	<select id="queryMenuListCount" resultType="Integer">
+		select
+		  count(*)
+		from sys_menu m 
+		where 1=1 and menu_status=1
+		<if test="menuType !=null">
+		  and  menu_type = #{menuType,javaType=Integer} 
+		</if>
+	</select>
+	
+	<insert id="saveMenu" >
+	  insert into sys_menu (menu_name, menu_type
+		,menu_status,menu_url,parent_menu_id,menu_create_time)
+		values(#{menuName},#{menuType} ,#{menuStatus},#{menuUrl},#{parentMenuId},now() )
+	
+	</insert>
+	
+	
+	<update id="updateMenu">
+			update sys_menu  set menu_name= #{menuName} , menu_type =#{menuType} ,menu_status = #{menuStatus},
+			menu_url =#{menuUrl}, parent_menu_id =#{parentMenuId} where menu_id =#{menuId}
+	</update>
+	
+	<select id="getMenuById" resultMap="BaseResultMap" >
+	   select  
+	   <include refid="Base_Column_List" />
+		from sys_menu m 
+		where 1=1  and m.menu_id = #{menuId,javaType=Integer}
+	</select>
+	<select id="querySonMenu" resultMap="BaseResultMap">
+	   	select 
+	   	 <include refid="Base_Column_List"></include>
+	   	 from sys_menu m where parent_menu_id = #{parentMenuId} and menu_status = 1 
+	</select>
+	<update id="updateMenuStatus">
+	    	update sys_menu set menu_status = #{param2} where menu_id = #{param1}
+	</update>
+	<select id="getMenuByUrl" resultMap="BaseResultMap" >
+	   select  
+	   <include refid="Base_Column_List" />
+		from sop_menu m 
+		where 1=1  and m.menu_url = #{url}
+	</select>
+</mapper>
